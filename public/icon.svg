@@ -1,21 +1,24 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1024 1024" role="img" aria-label="안다미로">
   <defs>
-    <linearGradient id="bg" x1="128" y1="80" x2="896" y2="944" gradientUnits="userSpaceOnUse">
-      <stop stop-color="#fff7ed"/>
-      <stop offset="0.55" stop-color="#f7f1e8"/>
-      <stop offset="1" stop-color="#e3f2ec"/>
-    </linearGradient>
-    <filter id="shadow" x="-10%" y="-10%" width="120%" height="120%" color-interpolation-filters="sRGB">
-      <feDropShadow dx="0" dy="20" stdDeviation="28" flood-color="#2f271f" flood-opacity="0.16"/>
+    <filter id="paperNoise" x="0" y="0" width="100%" height="100%" color-interpolation-filters="sRGB">
+      <feTurbulence type="fractalNoise" baseFrequency="0.78" numOctaves="4" seed="9" result="noise"/>
+      <feColorMatrix in="noise" type="saturate" values="0"/>
+      <feComponentTransfer>
+        <feFuncA type="table" tableValues="0 0.08"/>
+      </feComponentTransfer>
+    </filter>
+    <filter id="softShadow" x="-12%" y="-12%" width="124%" height="124%" color-interpolation-filters="sRGB">
+      <feDropShadow dx="0" dy="18" stdDeviation="24" flood-color="#2d3e33" flood-opacity="0.13"/>
     </filter>
   </defs>
-  <rect width="1024" height="1024" rx="224" fill="url(#bg)"/>
-  <rect x="112" y="112" width="800" height="800" rx="176" fill="#fffdf8" filter="url(#shadow)"/>
-  <path d="M512 132v760M132 512h760" stroke="#e6d9c9" stroke-width="18" stroke-linecap="round"/>
-  <g fill="#26211d" font-family="'Apple SD Gothic Neo', 'Noto Sans KR', 'Noto Sans CJK KR', sans-serif" font-size="250" font-weight="800" text-anchor="middle" dominant-baseline="central">
-    <text x="322" y="324">안</text>
-    <text x="702" y="324">다</text>
-    <text x="322" y="704">미</text>
-    <text x="702" y="704">로</text>
+  <rect width="1024" height="1024" rx="224" fill="#F4EFE6"/>
+  <rect width="1024" height="1024" rx="224" fill="#2D3E33" opacity="0.025" filter="url(#paperNoise)"/>
+  <rect x="104" y="104" width="816" height="816" rx="180" fill="#F8F2E9" filter="url(#softShadow)"/>
+  <rect x="104" y="104" width="816" height="816" rx="180" fill="#2D3E33" opacity="0.02" filter="url(#paperNoise)"/>
+  <g fill="#2D3E33" font-family="'Noto Serif KR', 'Apple SD Gothic Neo', serif" font-size="230" font-weight="700" text-anchor="middle" dominant-baseline="central">
+    <text x="325" y="332">안</text>
+    <text x="699" y="332">다</text>
+    <text x="325" y="700">미</text>
+    <text x="699" y="700">로</text>
   </g>
 </svg>

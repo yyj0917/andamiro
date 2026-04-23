@@ -1,6 +1,8 @@
 import {
+  browserLocalPersistence,
   getRedirectResult,
   onAuthStateChanged,
+  setPersistence,
   signInWithPopup,
   signInWithRedirect,
   signOut,
@@ -17,6 +19,9 @@ import {
 } from 'react'
 
 import { firebaseAuth, googleAuthProvider } from '@/lib/firebase'
+
+const SESSION_STARTED_AT_KEY = 'andamiro:session-started-at'
+const SESSION_TTL_MS = 1000 * 60 * 60 * 24 * 14
 
 interface AuthContextValue {
   user: User | null
@@ -38,12 +43,27 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       return
     }
 
-    void getRedirectResult(firebaseAuth).catch((redirectError: unknown) => {
-      setError(getAuthErrorMessage(redirectError))
-      setLoading(false)
-    })
+    const auth = firebaseAuth
 
-    return onAuthStateChanged(firebaseAuth, (nextUser) => {
+    void setPersistence(auth, browserLocalPersistence)
+      .then(() => getRedirectResult(auth))
+      .catch((redirectError: unknown) => {
+        setError(getAuthErrorMessage(redirectError))
+        setLoading(false)
+      })
+
+    return onAuthStateChanged(auth, (nextUser) => {
+      if (nextUser && isSessionExpired()) {
+        void signOut(auth)
+        return
+      }
+
+      if (nextUser) {
+        ensureSessionStartedAt()
+      } else {
+        clearSessionStartedAt()
+      }
+
       setUser(nextUser)
       setLoading(false)
     })
@@ -57,9 +77,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
     setError(null)
     try {
+      await setPersistence(firebaseAuth, browserLocalPersistence)
       await signInWithPopup(firebaseAuth, googleAuthProvider)
+      markSessionStarted()
     } catch (popupError) {
       if (shouldFallbackToRedirect(popupError)) {
+        markSessionStarted()
         await signInWithRedirect(firebaseAuth, googleAuthProvider)
         return
       }
@@ -73,6 +96,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       return
     }
 
+    clearSessionStartedAt()
     await signOut(firebaseAuth)
   }, [])
 
@@ -82,6 +106,56 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   )
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>
+}
+
+function ensureSessionStartedAt() {
+  if (!readSessionStartedAt()) {
+    markSessionStarted()
+  }
+}
+
+function markSessionStarted() {
+  const storage = getLocalStorage()
+
+  if (storage && typeof storage.setItem === 'function') {
+    storage.setItem(SESSION_STARTED_AT_KEY, String(Date.now()))
+  }
+}
+
+function clearSessionStartedAt() {
+  const storage = getLocalStorage()
+
+  if (storage && typeof storage.removeItem === 'function') {
+    storage.removeItem(SESSION_STARTED_AT_KEY)
+  }
+}
+
+function isSessionExpired() {
+  const sessionStartedAt = readSessionStartedAt()
+
+  if (!sessionStartedAt) {
+    return false
+  }
+
+  return Date.now() - sessionStartedAt > SESSION_TTL_MS
+}
+
+function readSessionStartedAt() {
+  const storage = getLocalStorage()
+
+  if (!storage || typeof storage.getItem !== 'function') {
+    return 0
+  }
+
+  return Number(storage.getItem(SESSION_STARTED_AT_KEY))
+}
+
+function getLocalStorage() {
+  if (typeof window === 'undefined') {
+    return null
+  }
+
+  return window.localStorage
 }
 
 function shouldFallbackToRedirect(error: unknown) {
