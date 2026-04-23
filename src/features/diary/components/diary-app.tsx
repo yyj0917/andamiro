@@ -82,7 +82,13 @@ export function DiaryApp({ user }: { user: User }) {
   }
 
   if (view === 'stats') {
-    return <StatsPage onBack={() => setView('home')} entryDates={entryDates} />
+    return (
+      <StatsPage
+        onBack={() => setView('home')}
+        entryDates={entryDates}
+        entries={entries}
+      />
+    )
   }
 
   return (

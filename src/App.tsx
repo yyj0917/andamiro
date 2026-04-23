@@ -1,3 +1,5 @@
+import { Analytics } from '@vercel/analytics/react'
+
 import { AuthProvider, useAuth } from '@/features/auth/auth-context'
 import { DiaryApp } from '@/features/diary/components/diary-app'
 import { LoginScreen } from '@/features/auth/components/login-screen'
@@ -19,11 +21,14 @@ function AppContent() {
 
 function App() {
   return (
-    <AppQueryProvider>
-      <AuthProvider>
-        <AppContent />
-      </AuthProvider>
-    </AppQueryProvider>
+    <>
+      <Analytics />
+      <AppQueryProvider>
+        <AuthProvider>
+          <AppContent />
+        </AuthProvider>
+      </AppQueryProvider>
+    </>
   )
 }
 

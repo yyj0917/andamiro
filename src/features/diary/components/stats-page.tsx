@@ -1,46 +1,55 @@
 import { ArrowLeft, ChevronLeft, ChevronRight, Flame, Sparkles } from 'lucide-react'
-import { useMemo, useState } from 'react'
+import { useState } from 'react'
 
+import { useMonthlySummary } from '@/features/diary/use-monthly-summary'
 import { PaperBackground } from '@/shared/ui/paper-background'
+
+import type { DiaryEntry } from '../types'
 
 interface StatsPageProps {
   onBack: () => void
   entryDates: string[]
+  entries: DiaryEntry[]
 }
 
-export function StatsPage({ onBack, entryDates }: StatsPageProps) {
+export function StatsPage({ onBack, entryDates, entries }: StatsPageProps) {
   const [currentDate, setCurrentDate] = useState(new Date())
+  const summaryMutation = useMonthlySummary()
 
   const year = currentDate.getFullYear()
   const month = currentDate.getMonth()
+  const monthLabel = `${year}년 ${month + 1}월`
   const daysInMonth = new Date(year, month + 1, 0).getDate()
   const firstDayOfWeek = new Date(year, month, 1).getDay()
 
-  const entryDateSet = useMemo(
-    () =>
-      new Set(
-        entryDates.map((date) => {
-          const [entryYear, entryMonth, entryDay] = date.split('.')
-          return `${entryYear}-${entryMonth}-${entryDay}`
-        }),
-      ),
-    [entryDates],
+  const entryDateSet = new Set(
+    entryDates.map((date) => {
+      const [entryYear, entryMonth, entryDay] = date.split('.')
+      return `${entryYear}-${entryMonth}-${entryDay}`
+    }),
   )
-
-  const streak = useMemo(() => calculateStreak(entryDates), [entryDates])
-  const thisMonthEntries = useMemo(() => {
-    const currentYear = new Date().getFullYear()
-    const currentMonth = new Date().getMonth() + 1
-
-    return entryDates.filter((date) => {
-      const [entryYear, entryMonth] = date.split('.')
-      return Number(entryYear) === currentYear && Number(entryMonth) === currentMonth
-    }).length
-  }, [entryDates])
+  const streak = calculateStreak(entryDates)
+  const currentYear = new Date().getFullYear()
+  const currentMonth = new Date().getMonth() + 1
+  const thisMonthEntries = entryDates.filter((date) => {
+    const [entryYear, entryMonth] = date.split('.')
+    return Number(entryYear) === currentYear && Number(entryMonth) === currentMonth
+  }).length
+  const selectedMonthEntries = entries.filter((entry) => {
+    const entryDate = new Date(entry.entryDate)
+    return entryDate.getFullYear() === year && entryDate.getMonth() === month
+  })
 
   const hasEntry = (day: number) => {
     const date = `${year}-${String(month + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`
     return entryDateSet.has(date)
+  }
+
+  const handleGenerateSummary = () => {
+    summaryMutation.mutate({
+      monthLabel,
+      entries: selectedMonthEntries,
+    })
   }
 
   return (
@@ -183,23 +192,41 @@ export function StatsPage({ onBack, entryDates }: StatsPageProps) {
               <div className="mb-4 flex items-center gap-2">
                 <Sparkles className="h-5 w-5 text-forest-green/60" strokeWidth={1.5} />
                 <span className="font-serif text-sm font-medium text-forest-green">
-                  {new Date().getFullYear()}년 {new Date().getMonth() + 1}월의 기록
+                  {monthLabel}의 기록
                 </span>
               </div>
 
               <div className="min-h-[120px] rounded-lg border border-dashed border-forest-green/20 bg-forest-green/5 p-4">
-                <p className="font-serif text-sm font-light leading-relaxed text-forest-green/50">
-                  AI 요약 기능이 여기에 표시됩니다.
-                  <br />
-                  이번 달의 모든 일기를 분석하여 감정 흐름, 주요 키워드, 의미 있는 순간들을 요약해 드립니다.
-                </p>
+                {summaryMutation.data ? (
+                  <p className="whitespace-pre-wrap font-serif text-sm font-light leading-relaxed text-forest-green/80">
+                    {summaryMutation.data}
+                  </p>
+                ) : (
+                  <p className="font-serif text-sm font-light leading-relaxed text-forest-green/50">
+                    요약 생성하기를 누르면 이 달의 일기를 분석합니다.
+                    <br />
+                    자동으로 생성하지 않고, 요청한 순간에만 AI를 호출합니다.
+                  </p>
+                )}
+                {summaryMutation.error instanceof Error ? (
+                  <p className="mt-3 text-sm text-destructive">
+                    {summaryMutation.error.message}
+                  </p>
+                ) : null}
               </div>
 
               <button
-                className="mt-4 w-full cursor-not-allowed rounded-lg border border-forest-green/20 bg-transparent py-3 font-serif text-sm font-medium text-forest-green/50"
-                disabled
+                className="paper-button mt-4 w-full border border-forest-green/20 bg-transparent py-3 text-sm font-medium text-forest-green hover:bg-forest-green/5"
+                disabled={
+                  summaryMutation.isPending || selectedMonthEntries.length === 0
+                }
+                onClick={handleGenerateSummary}
               >
-                요약 생성 준비 중
+                {summaryMutation.isPending
+                  ? '요약 생성 중...'
+                  : selectedMonthEntries.length === 0
+                    ? '요약할 일기가 없습니다'
+                    : '요약 생성하기'}
               </button>
             </div>
           </section>
