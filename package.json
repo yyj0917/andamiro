@@ -13,9 +13,6 @@
     "icons": "node scripts/generate-pwa-icons.mjs"
   },
   "dependencies": {
-    "@fontsource-variable/geist": "^5.2.8",
-    "@fontsource/noto-sans-kr": "^5.2.9",
-    "@fontsource/noto-serif-kr": "^5.2.9",
     "@tanstack/react-query": "^5.99.2",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",

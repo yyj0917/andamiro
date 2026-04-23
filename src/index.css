@@ -1,15 +1,6 @@
 @import "tailwindcss";
 @import "tw-animate-css";
 @import "shadcn/tailwind.css";
-@import "@fontsource-variable/geist";
-@import "@fontsource/noto-serif-kr/korean-300.css";
-@import "@fontsource/noto-serif-kr/korean-400.css";
-@import "@fontsource/noto-serif-kr/korean-500.css";
-@import "@fontsource/noto-serif-kr/korean-600.css";
-@import "@fontsource/noto-serif-kr/korean-700.css";
-@import "@fontsource/noto-sans-kr/korean-400.css";
-@import "@fontsource/noto-sans-kr/korean-500.css";
-@import "@fontsource/noto-sans-kr/korean-700.css";
 
 @custom-variant dark (&:is(.dark *));
 
@@ -71,8 +62,7 @@ body {
   --font-heading: "Noto Serif KR", "Apple SD Gothic Neo", ui-serif, serif;
   --font-serif: "Noto Serif KR", "Apple SD Gothic Neo", ui-serif, serif;
   --font-sans:
-    "Noto Sans KR", "Apple SD Gothic Neo", "Geist Variable", ui-sans-serif,
-    sans-serif;
+    "Noto Sans KR", "Apple SD Gothic Neo", ui-sans-serif, system-ui, sans-serif;
   --color-parchment: var(--parchment);
   --color-forest-green: var(--forest-green);
   --color-forest-green-light: var(--forest-green-light);
